@@ -1,0 +1,17 @@
+---
+title: Sabrina's first assignment
+author: Sabrina Molina
+course: ESM 262
+---
+
+Hi!
+I'm excited to take this class because I'm not great at 
+data/programming  but I want to learn more about it and keep 
+strengthening my skills in this  area. I'm taking this course 
+specifically because I want to learn how to communicate science 
+through models and visual information and this class is a basis 
+for that.
+
+My data science background is basically coursework on this area,
+more specifically learning the basics of coding and programming 
+in R, tidying data sets, plotting, and analyzing results. 
