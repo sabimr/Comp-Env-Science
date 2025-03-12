@@ -1,0 +1,85 @@
+---
+title: "Automobile Power in Highways"
+author: "Sabrina Molina"
+format: html
+editor: visual
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(purrr)
+library(ggplot2)
+library(ggpubr)
+```
+
+# Introduction
+
+This document analyzes the power required to keep different vehicles moving at highway speeds. We consider four car types: A, B, C, and a new Super Light car. Power is computed using two methods: a `FOR` loop and the `pmap` function from the `purrr` package.
+
+# Power Function
+
+```{r}
+autopower <- function(V, m, A, cdrag=0.3, crolling=0.015, pair=1.2, g=9.8) {
+  P = crolling * m * g * V + 0.5 * A * pair * cdrag * V^3
+  return(P)
+}
+```
+
+# Define Car Characteristics
+
+```{r}
+possible_cars <- data.frame(
+  name = c("A", "B", "C", "SuperLight"),
+  mass = c(10000, 65000, 38000, 5000),
+  area = c(22, 30, 22, 10)
+)
+```
+
+# Generate Speed Samples
+
+```{r}
+set.seed(123)
+n_samples <- 200
+mean_speed <- 80 * 0.277
+sd_speed <- 10 * 0.277
+
+speeds <- rnorm(n_samples, mean_speed, sd_speed)
+```
+
+# Compute Power Using FOR Loop
+
+```{r}
+power_for_loop <- as.data.frame(matrix(nrow=length(speeds), ncol=nrow(possible_cars)))
+colnames(power_for_loop) <- possible_cars$name
+
+for (i in 1:ncol(power_for_loop)) {
+  power_for_loop[,i] <- autopower(A=possible_cars$area[i], m=possible_cars$mass[i], V=speeds)
+}
+
+power_for_long <- power_for_loop %>%
+  pivot_longer(cols = everything(), names_to = "car", values_to = "power")
+```
+
+# Compute Power Using pmap
+
+```{r}
+power_pmap <- pmap_dfr(
+  list(A = possible_cars$area, m = possible_cars$mass),
+  ~ data.frame(car = possible_cars$name, power = autopower(V = speeds, A = ..1, m = ..2))
+)
+```
+
+# Boxplots for Comparison
+
+```{r} 
+plot_for <- ggplot(power_for_long, aes(car, power, fill = car)) +
+  geom_boxplot() +
+  ggtitle("Power Distribution (FOR Loop)") +
+  theme_minimal()
+
+plot_pmap <- ggplot(power_pmap, aes(car, power, fill = car)) +
+  geom_boxplot() +
+  ggtitle("Power Distribution (pmap)") +
+  theme_minimal()
+ggarrange(plot_for, plot_pmap, nrow = 2)
+```
